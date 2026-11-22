@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#eef1f6">
+  <title>墨板 InkBoard · 自由白板</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    (function () {
+      try {
+        var saved = JSON.parse(localStorage.getItem('inkboard.v1.settings') || '{}');
+        if (saved.dark) document.documentElement.dataset.theme = 'dark';
+        if (saved.themeColor) document.documentElement.style.setProperty('--accent', saved.themeColor);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-select" viewBox="0 0 24 24"><path d="M5 3l14 9-6.2 1.3L9.4 20 5 3z"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"/><path d="M14 6l4 4"/></symbol>
+    <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M8.5 20H21"/><path d="m6 15 6-6 6 6-5 5H9l-3-3a1.4 1.4 0 0 1 0-2z"/><path d="m10 9 6 6"/></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24"><path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/></symbol>
+    <symbol id="i-shapes" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><circle cx="17" cy="7" r="4"/><path d="M7 21l4-7 4 7H7z"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 2.8 21 7.4v9.2L12 21.2 3 16.6V7.4L12 2.8z"/><path d="M3 7.4l9 4.6 9-4.6"/><path d="M12 12v9.2"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m6 7 1 13h10l1-13"/><path d="M10 11v5M14 11v5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 1-1 1.7v.5"/><circle cx="12" cy="17.2" r=".9" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7V5z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="i-front" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 11 9 5-9 5-9-5 9-5z"/><path d="m3 8 9-5 9 5"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1.2a2.4 2.4 0 0 0 0-4.8h-1a2 2 0 0 1 0-4h4.3A4.5 4.5 0 0 0 21 7.7C19.2 4.8 15.8 3 12 3z"/><circle cx="7.6" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="10" cy="6.4" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.6" cy="6.3" r="1.1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-frame" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v5"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9 2h6"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5V3z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="var(--surface,#fff)"/><circle cx="15" cy="12" r="2" fill="var(--surface,#fff)"/><circle cx="8" cy="18" r="2" fill="var(--surface,#fff)"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5L5 20"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 4l-4 16"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 20h16"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"/></symbol>
+    <symbol id="i-zoom-in" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.2 15.2 21 21M10.5 7.5v6M7.5 10.5h6"/></symbol>
+    <symbol id="i-zoom-out" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.2 15.2 21 21M7.5 10.5h6"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="18" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="6" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="6" cy="18" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="18" r="1.2" fill="currentColor" stroke="none"/><circle cx="18" cy="18" r="1.2" fill="currentColor" stroke="none"/></symbol>
+  </svg>
+
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">墨</div>
+        <div class="brand-text">
+          <strong>墨板</strong>
+          <span>InkBoard</span>
+        </div>
+      </div>
+
+      <div class="doc-block">
+        <input id="docTitle" class="doc-title" value="未命名白板" maxlength="50" spellcheck="false" aria-label="白板名称">
+        <div class="save-state" id="saveState"><i></i><span>本地自动缓存</span></div>
+      </div>
+
+      <div class="top-actions">
+        <div class="clock" id="clock">
+          <span class="clock-time" id="clockTime">--:--</span>
+          <span class="clock-date" id="clockDate">加载中</span>
+        </div>
+        <div class="top-sep"></div>
+        <button class="icon-btn" id="panelToggle" title="打开设置面板" aria-label="打开设置面板">
+          <svg class="icon"><use href="#i-panel"></use></svg>
+        </button>
+        <button class="icon-btn" id="themeModeBtn" title="切换深浅界面" aria-label="切换深浅界面">
+          <svg class="icon"><use href="#i-moon"></use></svg>
+        </button>
+        <button class="icon-btn" id="helpBtn" title="快捷键帮助" aria-label="快捷键帮助">
+          <svg class="icon"><use href="#i-help"></use></svg>
+        </button>
+        <button class="primary-btn" id="topExportBtn">
+          <svg class="icon"><use href="#i-download"></use></svg>
+          <span>导出</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="toolbar" aria-label="绘图工具">
+        <div class="tool-group">
+          <button class="tool-btn active" data-tool="select" title="选择 / 框选 (V)">
+            <svg class="icon"><use href="#i-select"></use></svg>
+            <span class="tool-tip">选择</span>
+          </button>
+          <button class="tool-btn" data-tool="pen" title="钢笔 (P)">
+            <svg class="icon"><use href="#i-pen"></use></svg>
+            <span class="tool-tip">钢笔</span>
+          </button>
+          <button class="tool-btn" data-tool="eraser" title="橡皮 (E)">
+            <svg class="icon"><use href="#i-eraser"></use></svg>
+            <span class="tool-tip">橡皮</span>
+          </button>
+          <button class="tool-btn" data-tool="text" title="文字 (T)">
+            <svg class="icon"><use href="#i-text"></use></svg>
+            <span class="tool-tip">文字</span>
+          </button>
+        </div>
+
+        <div class="tool-sep"></div>
+
+        <div class="tool-group">
+          <button class="tool-btn" id="shapeBtn" title="基础图形">
+            <svg class="icon"><use href="#i-shapes"></use></svg>
+            <span class="tool-tip">图形</span>
+          </button>
+          <button class="tool-btn" id="shape3dBtn" title="3D 立体图形">
+            <svg class="icon"><use href="#i-cube"></use></svg>
+            <span class="tool-tip">3D 图形</span>
+          </button>
+        </div>
+
+        <div class="tool-sep"></div>
+
+        <div class="tool-group">
+          <button class="tool-btn" id="undoBtn" title="撤销 (Ctrl + Z)" disabled>
+            <svg class="icon"><use href="#i-undo"></use></svg>
+            <span class="tool-tip">撤销</span>
+          </button>
+          <button class="tool-btn" id="redoBtn" title="重做 (Ctrl + Y)" disabled>
+            <svg class="icon"><use href="#i-redo"></use></svg>
+            <span class="tool-tip">重做</span>
+          </button>
+        </div>
+
+        <div class="tool-spacer"></div>
+
+        <div class="tool-group">
+          <button class="tool-btn danger" id="clearBtn" title="一键清空画板">
+            <svg class="icon"><use href="#i-trash"></use></svg>
+            <span class="tool-tip">清空</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="canvas-area" id="canvasArea">
+        <div class="board-viewport" id="viewport">
+          <div class="board-stage" id="stage">
+            <canvas id="board"></canvas>
+          </div>
+        </div>
+
+        <div class="tool-options" id="toolOptions">
+          <span class="tool-hint" id="toolHint">钢笔 · 左键或右键拖动绘制</span>
+          <button class="fill-toggle" id="fillToggle" hidden aria-pressed="false">
+            <span class="fill-dot"></span>填充
+          </button>
+        </div>
+
+        <div class="canvas-hint" id="canvasHint">
+          <div class="hint-icon"><svg class="icon"><use href="#i-sparkle"></use></svg></div>
+          <h3>按住左键或右键，拖动就能画</h3>
+          <p>选择工具可以框选、移动和缩放内容；右侧可以调色、计时和保存。</p>
+          <div class="hint-keys">
+            <span><kbd>V</kbd> 选择</span>
+            <span><kbd>P</kbd> 画笔</span>
+            <span><kbd>E</kbd> 橡皮</span>
+            <span><kbd>T</kbd> 文字</span>
+          </div>
+        </div>
+
+        <div class="selection-bar" id="selectionBar" hidden>
+          <span class="sel-count" id="selCount">已选 1 项</span>
+          <span class="sel-sep"></span>
+          <button class="sel-btn" id="selDuplicate" title="复制 (Ctrl + D)"><svg class="icon"><use href="#i-copy"></use></svg>复制</button>
+          <button class="sel-btn" id="selFront" title="移到最上层"><svg class="icon"><use href="#i-front"></use></svg>置顶</button>
+          <button class="sel-btn" id="selBack" title="移到最下层"><svg class="icon"><use href="#i-back"></use></svg>置底</button>
+          <button class="sel-btn danger" id="selDelete" title="删除 (Delete)"><svg class="icon"><use href="#i-trash"></use></svg>删除</button>
+        </div>
+
+        <div class="floating-timer" id="floatingTimer" hidden>
+          <div class="ft-head" id="ftHead">
+            <span id="floatTimerLabel">秒表</span>
+            <button class="ft-close" id="floatTimerClose" title="关闭浮动计时器"><svg class="icon"><use href="#i-close"></use></svg></button>
+          </div>
+          <div class="ft-time" id="floatTimerTime">00:00</div>
+          <div class="ft-actions">
+            <button class="ft-btn primary" id="floatTimerToggle"><svg class="icon"><use href="#i-play"></use></svg><span>开始</span></button>
+            <button class="ft-btn" id="floatTimerReset" title="重置"><svg class="icon"><use href="#i-reset"></use></svg></button>
+          </div>
+        </div>
+
+        <div class="zoom-bar">
+          <button class="zoom-btn" id="zoomOut" title="缩小"><svg class="icon"><use href="#i-zoom-out"></use></svg></button>
+          <button class="zoom-label" id="zoomLabel" title="恢复到 100%">100%</button>
+          <button class="zoom-btn" id="zoomIn" title="放大"><svg class="icon"><use href="#i-zoom-in"></use></svg></button>
+          <span class="zoom-sep"></span>
+          <button class="zoom-btn" id="zoomFit" title="适应窗口"><svg class="icon"><use href="#i-fit"></use></svg></button>
+          <button class="zoom-btn" id="zoomReset" title="1:1 显示">1:1</button>
+        </div>
+
+        <div class="board-meta" id="boardMeta">1600 × 1000</div>
+      </main>
+
+      <aside class="sidepanel" id="sidepanel">
+        <div class="panel-tabs" role="tablist">
+          <button class="panel-tab active" data-tab="color" role="tab">
+            <svg class="icon"><use href="#i-palette"></use></svg><span>颜色</span>
+          </button>
+          <button class="panel-tab" data-tab="board" role="tab">
+            <svg class="icon"><use href="#i-frame"></use></svg><span>画板</span>
+          </button>
+          <button class="panel-tab" data-tab="timer" role="tab">
+            <svg class="icon"><use href="#i-timer"></use></svg><span>计时</span>
+          </button>
+          <button class="panel-tab" data-tab="saves" role="tab">
+            <svg class="icon"><use href="#i-save"></use></svg><span>存档</span>
+          </button>
+          <button class="panel-tab" data-tab="settings" role="tab">
+            <svg class="icon"><use href="#i-settings"></use></svg><span>设置</span>
+          </button>
+        </div>
+
+        <div class="panel-scroll" id="panelScroll">
+          <section class="panel active" data-panel="color">
+            <div class="panel-head">
+              <div>
+                <h2>颜色与笔触</h2>
+                <p>换色后立刻生效，右键也能画</p>
+              </div>
+              <span class="badge" id="toolBadge">钢笔</span>
+            </div>
+
+            <div class="color-editor card">
+              <label class="big-swatch" id="currentChip" title="点击选择颜色">
+                <input type="color" id="colorInput" value="#1f2937" aria-label="画笔颜色">
+                <span class="big-swatch-fill"></span>
+              </label>
+              <div class="color-editor-info">
+                <div class="hex-field">
+                  <span>#</span>
+                  <input id="hexInput" maxlength="6" value="1F2937" spellcheck="false" aria-label="十六进制颜色">
+                </div>
+                <div class="slider-field">
+                  <label for="widthRange"><span>笔画粗细</span><strong id="widthValue">4 px</strong></label>
+                  <input type="range" id="widthRange" min="1" max="40" value="4">
+                </div>
+                <div class="slider-field">
+                  <label for="textSizeRange"><span>文字字号</span><strong id="textSizeValue">32 px</strong></label>
+                  <input type="range" id="textSizeRange" min="12" max="120" value="32">
+                </div>
+              </div>
+            </div>
+
+            <div class="subhead">
+              <h3>最近使用</h3>
+              <button class="link-btn" id="clearRecent">清空</button>
+            </div>
+            <div class="swatches recent" id="recentColors"></div>
+
+            <div class="subhead">
+              <h3>自带预设</h3>
+              <span class="muted-note">点色块直接换色</span>
+            </div>
+            <div class="folders" id="builtinFolders"></div>
+
+            <div class="subhead">
+              <h3>我的颜色夹</h3>
+              <button class="mini-btn" id="newFolderBtn">
+                <svg class="icon"><use href="#i-plus"></use></svg>新建
+              </button>
+            </div>
+            <div class="folders" id="userFolders"></div>
+            <p class="panel-footnote">颜色夹会保存在本机，下次打开直接可用。</p>
+          </section>
+
+          <section class="panel" data-panel="board">
+            <div class="panel-head">
+              <div>
+                <h2>画板</h2>
+                <p>底色、纹理与尺寸</p>
+              </div>
+              <span class="badge soft" id="boardSizeBadge">1600 × 1000</span>
+            </div>
+
+            <div class="card">
+              <div class="field-label">
+                <span>画板底色</span>
+                <label class="inline-color" title="自定义画板颜色">
+                  <input type="color" id="boardColorInput" value="#fdfdfb">
+                  <i></i>
+                </label>
+              </div>
+              <div class="swatches" id="boardPresets"></div>
+              <div class="field-label spaced">
+                <span>背景纹理</span>
+              </div>
+              <div class="segmented" id="patternGroup">
+                <button data-pattern="none">纯色</button>
+                <button data-pattern="dots">点阵</button>
+                <button data-pattern="grid">网格</button>
+                <button data-pattern="lines">横线</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="field-label">
+                <span>画板尺寸</span>
+                <span class="muted-note">320 – 4000 px</span>
+              </div>
+              <div class="size-row">
+                <input id="boardW" type="number" min="320" max="4000" step="10" value="1600" aria-label="画板宽度">
+                <span class="times">×</span>
+                <input id="boardH" type="number" min="240" max="4000" step="10" value="1000" aria-label="画板高度">
+                <button class="mini-btn primary" id="applySize">应用</button>
+              </div>
+              <div class="chips" id="sizePresets">
+                <button data-w="1600" data-h="1131">A4 横</button>
+                <button data-w="1131" data-h="1600">A4 竖</button>
+                <button data-w="1920" data-h="1080">16:9</button>
+                <button data-w="1600" data-h="1200">4:3</button>
+                <button data-w="1200" data-h="1200">方形</button>
+              </div>
+              <button class="wide-btn" id="fitBoardBtn">
+                <svg class="icon"><use href="#i-fit"></use></svg>画板适应窗口
+              </button>
+              <p class="panel-footnote">改变尺寸不会删除已有内容，画板边界外的部分会被裁切。</p>
+            </div>
+          </section>
+
+          <section class="panel" data-panel="timer">
+            <div class="panel-head">
+              <div>
+                <h2>计时器</h2>
+                <p>秒表与自定义倒计时</p>
+              </div>
+              <span class="badge soft" id="timerBadge">待机</span>
+            </div>
+
+            <div class="segmented" id="timerMode">
+              <button data-mode="stopwatch" class="active">秒表</button>
+              <button data-mode="countdown">倒计时</button>
+            </div>
+
+            <div class="timer-card" id="timerCard">
+              <div class="timer-mode-label" id="timerSub">秒表 · 正计时</div>
+              <div class="timer-digits" id="timerDisplay">00:00</div>
+              <div class="timer-track"><i id="timerProgress"></i></div>
+              <div class="timer-actions">
+                <button class="mini-btn primary" id="timerStart"><svg class="icon"><use href="#i-play"></use></svg><span>开始</span></button>
+                <button class="mini-btn" id="timerReset"><svg class="icon"><use href="#i-reset"></use></svg>重置</button>
+              </div>
+            </div>
+
+            <div class="card" id="countdownSetup">
+              <div class="field-label">
+                <span>倒计时长</span>
+                <span class="muted-note">到时会有提示音</span>
+              </div>
+              <div class="time-row">
+                <label><input id="cdHours" type="number" min="0" max="23" value="0" aria-label="小时"><span>时</span></label>
+                <label><input id="cdMinutes" type="number" min="0" max="59" value="25" aria-label="分钟"><span>分</span></label>
+                <label><input id="cdSeconds" type="number" min="0" max="59" value="0" aria-label="秒"><span>秒</span></label>
+              </div>
+              <div class="chips" id="cdPresets">
+                <button data-min="1">1 分钟</button>
+                <button data-min="3">3 分钟</button>
+                <button data-min="5">5 分钟</button>
+                <button data-min="10">10 分钟</button>
+                <button data-min="15">15 分钟</button>
+                <button data-min="25">25 分钟</button>
+                <button data-min="45">45 分钟</button>
+                <button data-min="60">60 分钟</button>
+              </div>
+              <button class="wide-btn primary" id="applyCountdown">设定倒计时</button>
+            </div>
+
+            <div class="setting-row card tight">
+              <div><strong>浮动计时器</strong><span>在画板右上角显示，可拖动</span></div>
+              <label class="switch"><input type="checkbox" id="floatingTimerToggle"><i></i></label>
+            </div>
+          </section>
+
+          <section class="panel" data-panel="saves">
+            <div class="panel-head">
+              <div>
+                <h2>存档与导出</h2>
+                <p>自动缓存，也支持手动快照</p>
+              </div>
+            </div>
+
+            <div class="autosave-card" id="autosaveCard">
+              <span class="status-dot"></span>
+              <div class="autosave-text">
+                <strong>自动保存已开启</strong>
+                <span id="autosaveState">等待第一次保存</span>
+              </div>
+              <button class="mini-btn" id="saveNowBtn">立即保存</button>
+            </div>
+
+            <div class="card">
+              <div class="field-label">
+                <span>保存一个快照</span>
+                <span class="muted-note">可随时载入</span>
+              </div>
+              <div class="snap-row">
+                <input id="snapName" maxlength="40" placeholder="给这版起个名字（可选）" spellcheck="false">
+                <button class="mini-btn primary" id="saveSnapshotBtn">保存</button>
+              </div>
+              <div class="saves-list" id="savesList"></div>
+            </div>
+
+            <div class="card">
+              <div class="field-label">
+                <span>导出与备份</span>
+                <span class="muted-note">PNG / JSON</span>
+              </div>
+              <div class="stack-btns">
+                <button class="wide-btn" id="exportPngBtn">
+                  <svg class="icon"><use href="#i-image"></use></svg>导出 PNG 图片
+                </button>
+                <button class="wide-btn" id="exportJsonBtn">
+                  <svg class="icon"><use href="#i-code"></use></svg>导出 JSON 源文件
+                </button>
+                <button class="wide-btn" id="importJsonBtn">
+                  <svg class="icon"><use href="#i-upload"></use></svg>导入 JSON 备份
+                </button>
+              </div>
+              <input type="file" id="importFile" accept="application/json,.json" hidden>
+            </div>
+
+            <button class="danger-wide" id="clearBoardBtn2">
+              <svg class="icon"><use href="#i-trash"></use></svg>清空画板
+            </button>
+            <p class="panel-footnote">清空后仍可用 Ctrl + Z 撤销。</p>
+          </section>
+
+          <section class="panel" data-panel="settings">
+            <div class="panel-head">
+              <div>
+                <h2>设置</h2>
+                <p>主题、时钟与使用偏好</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="field-label">
+                <span>主题色</span>
+                <span class="muted-note" id="themeHex">#4F46E5</span>
+              </div>
+              <div class="swatches" id="themePresets"></div>
+              <label class="wide-btn color-btn">
+                <input type="color" id="themeColorInput" value="#4f46e5">
+                <svg class="icon"><use href="#i-palette"></use></svg>自定义主题色
+              </label>
+            </div>
+
+            <div class="card">
+              <div class="setting-row">
+                <div><strong>深色界面</strong><span>只改变工具界面，不改变画板</span></div>
+                <label class="switch"><input type="checkbox" id="darkToggle"><i></i></label>
+              </div>
+              <div class="setting-row">
+                <div><strong>24 小时制</strong><span>关闭后显示 AM / PM</span></div>
+                <label class="switch"><input type="checkbox" id="clock24Toggle"><i></i></label>
+              </div>
+              <div class="setting-row">
+                <div><strong>显示秒数</strong><span>顶部现实时间显示到秒</span></div>
+                <label class="switch"><input type="checkbox" id="secondsToggle"><i></i></label>
+              </div>
+              <div class="setting-row">
+                <div><strong>提示音</strong><span>倒计时结束与操作提示</span></div>
+                <label class="switch"><input type="checkbox" id="soundToggle"><i></i></label>
+              </div>
+              <div class="setting-row">
+                <div><strong>自动保存</strong><span>修改后自动缓存到本机</span></div>
+                <label class="switch"><input type="checkbox" id="autosaveToggle"><i></i></label>
+              </div>
+            </div>
+
+            <div class="card shortcut-card">
+              <div class="field-label">
+                <span>常用快捷键</span>
+                <button class="link-btn" id="helpBtn2">全部</button>
+              </div>
+              <div class="shortcut-grid">
+                <span><kbd>V</kbd> 选择</span>
+                <span><kbd>P</kbd> 钢笔</span>
+                <span><kbd>E</kbd> 橡皮</span>
+                <span><kbd>T</kbd> 文字</span>
+                <span><kbd>Ctrl</kbd> + <kbd>Z</kbd> 撤销</span>
+                <span><kbd>Ctrl</kbd> + <kbd>Y</kbd> 重做</span>
+                <span><kbd>Del</kbd> 删除选中</span>
+                <span><kbd>Ctrl</kbd> + <kbd>S</kbd> 保存</span>
+              </div>
+            </div>
+
+            <button class="wide-btn" id="resetSettingsBtn">
+              <svg class="icon"><use href="#i-reset"></use></svg>恢复默认设置
+            </button>
+            <p class="panel-footnote">所有内容仅保存在你的浏览器本地，不会上传服务器。</p>
+          </section>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="popoverRoot"></div>
+  <div id="modalRoot"></div>
+  <div id="toastRoot" aria-live="polite"></div>
+
+  <script src="js/util.js"></script>
+  <script src="js/shapes.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
