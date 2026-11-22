@@ -1,4 +1,7 @@
 # 墨板 · InkBoard
+
+> This HTML was developed for the Chinese people, so it is not available in other languages.
+
 一个纯前端、可离线使用的自由白板。无需安装依赖、无需联网，双击即可开始。
 ![墨板界面预览](preview.png)
 打开方式
